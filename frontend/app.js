@@ -314,7 +314,11 @@ function switchTab(which) {
 }
 
 btnLogin.addEventListener("click", async () => {
-  if (getToken && getToken()) {
+  const hasToken = !!getToken();
+  if (hasToken) {
+    try { authDialog.close(); } catch(_) {}
+    cartDrawer?.classList.add("hidden");
+
     try {
       await fetch(`${API_BASE}/cart/clear`, {
         method: "POST",
@@ -323,21 +327,24 @@ btnLogin.addEventListener("click", async () => {
           "X-Session-Id": getSessionId()
         }
       });
-    } catch (_) { /* Ignore clearing failure and do not block logout */ }
+    } catch (_) {}
 
-    clearToken && clearToken();
-    clearName && clearName();
-
+    clearToken();      // uqms_token
+    clearName();       // uqms_name
     localStorage.removeItem("uqms_session");
     getSessionId();
 
+    btnLogin.textContent = "Login";
+    btnRegister.textContent = "Register";
+    btnRegister.disabled = false;
+
     await refreshCartCount();
-    cartDrawer?.classList.add("hidden");
     toast("Logged out. Cart cleared.", "ok");
-    setTimeout(() => setAuthUI && setAuthUI(), 100);
+
+    setTimeout(() => setAuthUI(), 0);
   } else {
-    switchTab && switchTab("login");
-    authDialog?.showModal();
+    switchTab("login");
+    authDialog.showModal();
   }
 });
 
@@ -424,6 +431,7 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
 
 
 
