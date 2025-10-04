@@ -333,7 +333,7 @@ btnLogin.addEventListener("click", async () => {
     await refreshCartCount();
     cartDrawer?.classList.add("hidden");
     toast("Logged out. Cart cleared.", "ok");
-    setAuthUI && setAuthUI();
+    setTimeout(() => setAuthUI && setAuthUI(), 100);
   } else {
     switchTab && switchTab("login");
     authDialog?.showModal();
@@ -423,4 +423,5 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
 
