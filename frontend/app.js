@@ -1,5 +1,6 @@
 // --- Config ---
-const API_BASE = "http://localhost:3000/api";
+// const API_BASE = "http://localhost:3000/api";
+const API_BASE = "/api";
 
 // --- Helpers ---
 function getSessionId() {
@@ -422,3 +423,4 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
