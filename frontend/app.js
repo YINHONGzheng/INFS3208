@@ -289,6 +289,7 @@ function setName(n) { localStorage.setItem("uqms_name", n); }
 function clearName() { localStorage.removeItem("uqms_name"); }
 
 function setAuthUI() {
+  localStorage.getItem("uqms_token");
   const token = getToken();
   if (token) {
     const name = getName();
@@ -423,5 +424,6 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
 
 
