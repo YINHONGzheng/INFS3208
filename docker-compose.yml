@@ -27,8 +27,8 @@ services:
       - DB_NAME=minishop
       - DB_USER=minishop
       - DB_PASS=minishop123
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       - db
 
@@ -46,3 +46,4 @@ services:
 volumes:
 
   uqshop_data:
+
