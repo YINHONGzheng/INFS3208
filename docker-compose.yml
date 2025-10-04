@@ -1,0 +1,46 @@
+version: "3.3"
+
+services:
+  db:
+    image: mysql:latest
+    container_name: uqshop_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: minishop
+      MYSQL_USER: minishop
+      MYSQL_PASSWORD: minishop123
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - uqshop_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: uqshop_api
+    working_dir: /app
+    environment:
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=minishop
+      - DB_USER=minishop
+      - DB_PASS=minishop123
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  frontend:
+    image: nginx:latest
+    container_name: uqshop_frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+
+volumes:
+  uqshop_data:
