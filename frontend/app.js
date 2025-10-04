@@ -277,12 +277,8 @@ const btnDoRegister = document.getElementById("btnDoRegister");
 const loginMsg = document.getElementById("loginMsg");
 const regMsg = document.getElementById("regMsg");
 
-function getAllLoginButtons() {
-  return Array.from(document.querySelectorAll('#btnLogin'));
-}
-function getAllRegisterButtons() {
-  return Array.from(document.querySelectorAll('#btnRegister'));
-}
+const btnLogin = document.getElementById("btnLogin");
+const btnRegister = document.getElementById("btnRegister");
 
 function getToken() { return localStorage.getItem("uqms_token"); }
 function setToken(t) { localStorage.setItem("uqms_token", t); }
@@ -293,25 +289,17 @@ function setName(n) { localStorage.setItem("uqms_name", n); }
 function clearName() { localStorage.removeItem("uqms_name"); }
 
 function setAuthUI() {
+  localStorage.getItem("uqms_token");
   const token = getToken();
-  const name = getName();
-  const loginBtns = getAllLoginButtons();
-  const registerBtns = getAllRegisterButtons();
-
-  if (!loginBtns.length || !registerBtns.length) return;
-
   if (token) {
-    loginBtns.forEach(b => b.textContent = "Logout");
-    registerBtns.forEach(b => {
-      b.textContent = name ? `Welcome, ${name.split(' ')[0]}` : "Welcome";
-      b.disabled = true;
-    });
+    const name = getName();
+    btnLogin.textContent = "Logout";
+    btnRegister.textContent = name ? `Welcome, ${name.split(' ')[0]}` : "Welcome";
+    btnRegister.disabled = true;
   } else {
-    loginBtns.forEach(b => b.textContent = "Login");
-    registerBtns.forEach(b => {
-      b.textContent = "Register";
-      b.disabled = false;
-    });
+    btnLogin.textContent = "Login";
+    btnRegister.textContent = "Register";
+    btnRegister.disabled = false;
   }
 }
 
@@ -325,53 +313,38 @@ function switchTab(which) {
   regMsg.textContent = "";
 }
 
-function bindAuthButtons() {
-  getAllLoginButtons().forEach(btn => {
-    btn.replaceWith(btn.cloneNode(true));
-  });
-  getAllRegisterButtons().forEach(btn => {
-    btn.replaceWith(btn.cloneNode(true));
-  });
+btnLogin.addEventListener("click", async () => {
+  if (getToken && getToken()) {
+    try {
+      await fetch(`${API_BASE}/cart/clear`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-Id": getSessionId()
+        }
+      });
+    } catch (_) { /* Ignore clearing failure and do not block logout */ }
 
-  const loginBtns = getAllLoginButtons();
-  const registerBtns = getAllRegisterButtons();
+    clearToken && clearToken();
+    clearName && clearName();
 
-  loginBtns.forEach(btn => {
-    btn.addEventListener("click", async () => {
-      if (getToken && getToken()) {
-        try {
-          await fetch(`${API_BASE}/cart/clear`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Session-Id": getSessionId() }
-          });
-        } catch(_) {}
+    localStorage.removeItem("uqms_session");
+    getSessionId();
 
-        clearToken && clearToken();
-        clearName && clearName();
+    await refreshCartCount();
+    cartDrawer?.classList.add("hidden");
+    toast("Logged out. Cart cleared.", "ok");
+    setTimeout(() => setAuthUI && setAuthUI(), 100);
+  } else {
+    switchTab && switchTab("login");
+    authDialog?.showModal();
+  }
+});
 
-        localStorage.removeItem("uqms_session");
-        getSessionId();
-
-        await refreshCartCount();
-        cartDrawer?.classList.add("hidden");
-        toast("Logged out. Cart cleared.", "ok");
-
-        setAuthUI();
-        bindAuthButtons();
-      } else {
-        switchTab("login");
-        authDialog?.showModal();
-      }
-    });
-  });
-
-  registerBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      switchTab("register");
-      authDialog.showModal();
-    });
-  });
-}
+btnRegister.addEventListener("click", () => {
+  switchTab("register");
+  authDialog.showModal();
+});
 
 tabLogin.addEventListener("click", () => switchTab("login"));
 tabRegister.addEventListener("click", () => switchTab("register"));
@@ -392,7 +365,6 @@ btnDoLogin.addEventListener("click", async (e) => {
       setToken(data.token);
       if (data.fullname) setName(data.fullname);
       setAuthUI();
-      bindAuthButtons();
       authDialog.close();
       toast("Logged in", "ok");
 
@@ -452,11 +424,3 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
-
-bindAuthButtons();
-
-
-
-
-
-
