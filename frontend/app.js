@@ -320,6 +320,7 @@ btnLogin.addEventListener("click", async () => {
       await fetch(`${API_BASE}/cart`, {
         method: "DELETE",
         headers: {
+          "Content-Type": "application/json",
           "X-Session-Id": getSessionId()
         }
       });
@@ -424,4 +425,5 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
 
