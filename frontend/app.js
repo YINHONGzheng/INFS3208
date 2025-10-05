@@ -289,19 +289,22 @@ function setName(n) { localStorage.setItem("uqms_name", n); }
 function clearName() { localStorage.removeItem("uqms_name"); }
 
 function setAuthUI() {
-  localStorage.getItem("uqms_token");
-  const token = getToken();
+  const token = localStorage.getItem("uqms_token");
+  const name  = localStorage.getItem("uqms_name") || "";
+
   if (token) {
-    const name = getName();
     btnLogin.textContent = "Logout";
     btnRegister.textContent = name ? `Welcome, ${name.split(' ')[0]}` : "Welcome";
     btnRegister.disabled = true;
+    btnLogin.dataset.state = "logged-in";
   } else {
     btnLogin.textContent = "Login";
     btnRegister.textContent = "Register";
     btnRegister.disabled = false;
+    btnLogin.dataset.state = "logged-out";
   }
 }
+
 
 function switchTab(which) {
   const isLogin = which === "login";
@@ -314,32 +317,40 @@ function switchTab(which) {
 }
 
 btnLogin.addEventListener("click", async () => {
-  if (getToken && getToken()) {
+  const token = localStorage.getItem("uqms_token");
+  if (token) {
+    // === Logout ===
     try {
       await fetch(`${API_BASE}/cart/clear`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Session-Id": getSessionId()
+          "X-Session-Id": getSessionId(),
+          "Authorization": `Bearer ${token}`
         }
       });
-    } catch (_) { /* Ignore clearing failure and do not block logout */ }
+    } catch (e) {
+      console.warn("cart/clear failed:", e);
+    }
 
-    clearToken && clearToken();
-    clearName && clearName();
-
+    localStorage.removeItem("uqms_token");
+    localStorage.removeItem("uqms_name");
     localStorage.removeItem("uqms_session");
     getSessionId();
 
+    setAuthUI();
     await refreshCartCount();
     cartDrawer?.classList.add("hidden");
     toast("Logged out. Cart cleared.", "ok");
-    setTimeout(() => window.location.reload(), 150);
+
+    // setTimeout(() => window.location.reload(), 150);
+
   } else {
-    switchTab && switchTab("login");
+    switchTab("login");
     authDialog?.showModal();
   }
 });
+
 
 btnRegister.addEventListener("click", () => {
   switchTab("register");
@@ -424,4 +435,5 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
 
