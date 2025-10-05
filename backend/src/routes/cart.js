@@ -79,14 +79,11 @@ module.exports = (pool) => {
   });
   
   // 4) Clear shopping cart
-  router.post('/clear', async (req, res) => {
+  router.delete('/', async (req, res) => {
     const sessionId = req.header('X-Session-Id');
-    const userId = getUserIdFromReq(req);
-    if (!sessionId && !userId) {
-      return res.status(400).json({ error: 'X-Session-Id or user token required' });
-    }
+    if (!sessionId) return res.status(400).json({ error: 'X-Session-Id required' });
     try {
-      const cartId = await ensureCart(pool, sessionId, userId);
+      const cartId = await ensureCart(pool, sessionId);
       await pool.query('DELETE FROM cart_items WHERE cart_id=?', [cartId]);
       return res.json({ success: true });
     } catch (e) {
@@ -96,3 +93,4 @@ module.exports = (pool) => {
 
   return router;
 };
+
