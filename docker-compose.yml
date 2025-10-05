@@ -44,6 +44,4 @@ services:
       - backend
 
 volumes:
-
   uqshop_data:
-
