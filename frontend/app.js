@@ -425,5 +425,3 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
-
-
