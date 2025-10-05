@@ -142,6 +142,7 @@ async function fetchCart() {
   const res = await fetch(`${API_BASE}/cart`, {
     headers: { "X-Session-Id": getSessionId() }
   });
+  if (res.status === 204) return { items: [], total: 0 };
   return res.json();
 }
 
@@ -316,10 +317,9 @@ function switchTab(which) {
 btnLogin.addEventListener("click", async () => {
   if (getToken && getToken()) {
     try {
-      await fetch(`${API_BASE}/cart/clear`, {
-        method: "POST",
+      await fetch(`${API_BASE}/cart`, {
+        method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
           "X-Session-Id": getSessionId()
         }
       });
@@ -424,3 +424,4 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
+
