@@ -289,22 +289,19 @@ function setName(n) { localStorage.setItem("uqms_name", n); }
 function clearName() { localStorage.removeItem("uqms_name"); }
 
 function setAuthUI() {
-  const token = localStorage.getItem("uqms_token");
-  const name  = localStorage.getItem("uqms_name") || "";
-
+  localStorage.getItem("uqms_token");
+  const token = getToken();
   if (token) {
+    const name = getName();
     btnLogin.textContent = "Logout";
     btnRegister.textContent = name ? `Welcome, ${name.split(' ')[0]}` : "Welcome";
     btnRegister.disabled = true;
-    btnLogin.dataset.state = "logged-in";
   } else {
     btnLogin.textContent = "Login";
     btnRegister.textContent = "Register";
     btnRegister.disabled = false;
-    btnLogin.dataset.state = "logged-out";
   }
 }
-
 
 function switchTab(which) {
   const isLogin = which === "login";
@@ -317,40 +314,32 @@ function switchTab(which) {
 }
 
 btnLogin.addEventListener("click", async () => {
-  const token = localStorage.getItem("uqms_token");
-  if (token) {
-    // === Logout ===
+  if (getToken && getToken()) {
     try {
       await fetch(`${API_BASE}/cart/clear`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Session-Id": getSessionId(),
-          "Authorization": `Bearer ${token}`
+          "X-Session-Id": getSessionId()
         }
       });
-    } catch (e) {
-      console.warn("cart/clear failed:", e);
-    }
+    } catch (_) { /* Ignore clearing failure and do not block logout */ }
 
-    localStorage.removeItem("uqms_token");
-    localStorage.removeItem("uqms_name");
+    clearToken && clearToken();
+    clearName && clearName();
+
     localStorage.removeItem("uqms_session");
     getSessionId();
 
-    setAuthUI();
     await refreshCartCount();
     cartDrawer?.classList.add("hidden");
     toast("Logged out. Cart cleared.", "ok");
-
-    // setTimeout(() => window.location.reload(), 150);
-
+    setTimeout(() => setAuthUI && setAuthUI(), 100);
   } else {
-    switchTab("login");
+    switchTab && switchTab("login");
     authDialog?.showModal();
   }
 });
-
 
 btnRegister.addEventListener("click", () => {
   switchTab("register");
@@ -435,5 +424,3 @@ setAuthUI();
   await loadProducts();
   await refreshCartCount();
 })();
-
-
